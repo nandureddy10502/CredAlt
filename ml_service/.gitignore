@@ -1,0 +1,25 @@
+# Python environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python byte-code & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment files
+.env
+.env.local
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
