@@ -1,5 +1,7 @@
 # CredAlt — Alternative Credit Scorer for the Unbanked
 
+> 🌐 **Live Production Deployment**: [https://credalt-eta.vercel.app/](https://credalt-eta.vercel.app/)
+
 An enterprise-grade, production-ready AI credit underwriting web application tailored for unbanked and informal-economy borrowers (gig drivers, street merchants, independent artisans, and daily wage workers) who lack formal credit histories or CIBIL/FICO bureau records.
 
 The system evaluates applicants using **alternative behavioral telemetry**, predicts default risk using **XGBoost**, extracts individual marginal feature attributions using **SHAP**, and generates plain-English supervisory risk reports using a **resilient 3-tier LLM engine** (Local Ollama CUDA → Gemini 2.5 Flash Cloud API → Groq Llama 3.1 Cloud API → Deterministic Rule Synthesizer).

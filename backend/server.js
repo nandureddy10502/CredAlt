@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import { connectDB, getDbStatus } from './config/db.js';
 import authRoutes from './routes/auth.js';
 import applicationRoutes from './routes/applications.js';
@@ -16,6 +17,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
+  'https://credalt-eta.vercel.app',
   ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map((u) => u.trim()) : []),
   ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
   ...(process.env.VERCEL_PROJECT_PRODUCTION_URL ? [`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`] : []),
@@ -36,8 +38,24 @@ app.use(
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Connect to MongoDB
-connectDB();
+// Top-level database connection middleware for serverless invocations
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api') && req.path !== '/api/health') {
+    try {
+      if (mongoose.connection.readyState !== 1) {
+        await connectDB();
+      }
+    } catch (err) {
+      console.error('Database connection middleware error:', err.message);
+    }
+  }
+  next();
+});
+
+// Initial non-blocking connection attempt
+connectDB().catch((err) => {
+  console.warn('[MongoDB] Initial connection notice:', err.message);
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -45,6 +63,11 @@ app.use('/api/applications', applicationRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await connectDB();
+    } catch (e) {}
+  }
   const dbStatus = getDbStatus();
   const fastApiStatus = await checkFastApiHealth();
 

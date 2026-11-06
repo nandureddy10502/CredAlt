@@ -8,26 +8,44 @@ try {
   // Ignore if not supported in environment
 }
 
-export const connectDB = async () => {
-  if (mongoose.connection.readyState === 1) {
-    return true;
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+export async function connectDB() {
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    return cached.conn;
   }
 
-  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/credalt';
+  if (!cached.promise) {
+    const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/credalt';
+    if (!uri) {
+      throw new Error('MONGODB_URI is not defined in environment variables');
+    }
+
+    const opts = {
+      bufferCommands: false,
+      serverSelectionTimeoutMS: 8000,
+      maxPoolSize: 5,
+    };
+
+    cached.promise = mongoose.connect(uri, opts).then((m) => {
+      console.log('[OK] Connected to MongoDB Atlas');
+      return m;
+    });
+  }
 
   try {
-    const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 10000,
-    });
-    console.log(`[MongoDB] Live connection established: ${conn.connection.host}/${conn.connection.name}`);
-    return true;
-  } catch (error) {
-    console.error(`[MongoDB Connection Failed]: ${error.message}`);
-    console.error(`[MongoDB Strict Policy]: In-memory fallback is disabled. Unhandled DB operations will return HTTP 503.`);
-    return false;
+    cached.conn = await cached.promise;
+  } catch (err) {
+    cached.promise = null;
+    console.error('[FAIL] MongoDB connection failed:', err.message);
+    throw err;
   }
-};
+
+  return cached.conn;
+}
 
 // Event listeners for connection monitoring
 mongoose.connection.on('disconnected', () => {
@@ -50,3 +68,5 @@ export const getDbStatus = () => {
     dbName: mongoose.connection.name || null,
   };
 };
+
+export default connectDB;

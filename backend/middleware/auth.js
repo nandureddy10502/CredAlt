@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
+import { connectDB } from '../config/db.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'credalt_dev_jwt_secret_change_in_production';
 
@@ -87,16 +88,21 @@ export const requireRole = (role) => {
 };
 
 /**
- * Middleware: Strict Database Readiness Check
- * Rejects requests with HTTP 503 if MongoDB is not connected
+ * Middleware: Asynchronous Database Readiness Check for Serverless
+ * Awaits connection resolution rather than prematurely failing with 503
  */
-export const requireDb = (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
+export const requireDb = async (req, res, next) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB();
+    }
+    next();
+  } catch (err) {
     return res.status(503).json({
       success: false,
-      error: 'Database Service Unavailable. MongoDB is not connected. In-memory fallback has been disabled as per strict persistence policy.',
+      error: 'MongoDB is currently offline. Ensure Atlas IP whitelist (0.0.0.0/0) and MONGODB_URI are configured.',
+      details: err.message,
     });
   }
-  next();
 };
 
