@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const FASTAPI_URL = process.env.ML_SERVICE_URL || process.env.FASTAPI_URL || 'http://127.0.0.1:8000';
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || process.env.FASTAPI_URL || 'http://127.0.0.1:8000';
+const FASTAPI_URL = ML_SERVICE_URL;
 const AI_TIMEOUT = Number(process.env.AI_SERVICE_TIMEOUT) || 30000;
 
 /**

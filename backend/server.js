@@ -12,18 +12,20 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Dynamic CORS configuration supporting local dev and deployed CLIENT_URL
+// Dynamic CORS configuration supporting same-origin, local dev, Vercel deployments, and CLIENT_URL
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map((u) => u.trim()) : []),
+  ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+  ...(process.env.VERCEL_PROJECT_PRODUCTION_URL ? [`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`] : []),
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (curl, mobile, server-to-server) or matching allowed origins
-      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      // Allow requests with no origin (same-origin, curl, server-to-server) or matching allowed/vercel origins
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*') || origin.endsWith('.vercel.app')) {
         return callback(null, true);
       }
       return callback(null, true);
