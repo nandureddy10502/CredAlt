@@ -3,15 +3,7 @@
   "services": {
     "backend": {
       "root": "backend",
-      "framework": "express",
-      "bindings": [
-        {
-          "type": "service",
-          "service": "ml_service",
-          "format": "url",
-          "env": "ML_SERVICE_URL"
-        }
-      ]
+      "framework": "express"
     },
     "frontend": {
       "root": "frontend",
@@ -22,10 +14,6 @@
           "destination": "/index.html"
         }
       ]
-    },
-    "ml_service": {
-      "root": "ml_service",
-      "framework": "fastapi"
     }
   },
   "rewrites": [

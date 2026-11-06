@@ -91,3 +91,5 @@ app.listen(PORT, () => {
   console.log(`[Express] Primary Backend server running on http://localhost:${PORT}`);
   console.log(`[Express] AI Service target: ${process.env.ML_SERVICE_URL || process.env.FASTAPI_URL || 'http://127.0.0.1:8000'}`);
 });
+
+export default app;
